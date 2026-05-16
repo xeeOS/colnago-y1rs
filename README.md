@@ -29,8 +29,9 @@
 ├── Pictures/
 │   ├── colnago_logo.png      # assets
 │   ├── leftmouseclick.png    
-│   ├── rightmouseclick.png   
-│   └── scrollbutton.png      
+│   ├── rightmouseclick.png
+|   ├── scrollbutton.png
+│   └── y1rs.png
 ├── index.html                # Main file
 ├── LICENSE                  
 └── README.md                
