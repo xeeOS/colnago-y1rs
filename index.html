@@ -1110,6 +1110,19 @@
       }
     }
 
+    /* Keyboard Navigation */
+    window.addEventListener('keydown', (e) => {
+      if (!panel.classList.contains('open')) return;
+
+      if (e.key === 'ArrowRight') {
+        navigateHotspot(1);
+      } else if (e.key === 'ArrowLeft') {
+        navigateHotspot(-1);
+      } else if (e.key === 'Escape') {
+        closePanel();
+      }
+    });
+
   </script>
 </body>
 
