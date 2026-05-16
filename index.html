@@ -430,6 +430,35 @@
       overflow: hidden;
     }
 
+    /* PANEL NAVIGATION */
+    .p-nav {
+      display: flex;
+      gap: 12px;
+      margin-top: 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .p-nav-btn {
+      background: transparent;
+      border: 1px solid rgba(244, 242, 238, 0.15);
+      color: rgba(244, 242, 238, 0.7);
+      font-family: var(--font);
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .p-nav-btn:hover {
+      background: var(--white);
+      color: var(--bg);
+      border-color: var(--white);
+    }
+
     #panel.open {
       transform: translateX(0);
     }
@@ -839,6 +868,11 @@
     <div class="p-divider"></div>
     <p class="p-desc" id="p-desc">—</p>
     <div class="p-tags" id="p-tags"></div>
+
+    <div class="p-nav">
+      <button class="p-nav-btn" id="p-prev">← Prev</button>
+      <button class="p-nav-btn" id="p-next">Next →</button>
+    </div>
   </div>
 
   <div class="bottom">
@@ -903,6 +937,10 @@
       devOrbit.textContent = orbitStr;
       devTarget.textContent = targetStr;
     });
+
+    const allHotspots = Array.from(document.querySelectorAll('.Hotspot'));
+    const btnPrev = document.getElementById('p-prev');
+    const btnNext = document.getElementById('p-next');
 
     const panel = document.getElementById('panel');
     const overlay = document.getElementById('overlay');
@@ -1047,6 +1085,31 @@
 
       setTimeout(() => { if (!activeBtn) viewer.autoRotate = true; }, 900);
     }
+
+    /* Panel Navigation Logic */
+    btnNext.addEventListener('click', () => navigateHotspot(1));
+    btnPrev.addEventListener('click', () => navigateHotspot(-1));
+
+    function navigateHotspot(direction) {
+      if (!activeBtn) return;
+
+      // Get current index from the data-count attribute
+      const currentIndex = parseInt(activeBtn.dataset.count);
+      let newIndex = currentIndex + direction;
+
+      // Wrap around if they hit the end or beginning
+      if (newIndex >= allHotspots.length) newIndex = 0;
+      if (newIndex < 0) newIndex = allHotspots.length - 1;
+
+      // Find the specific hotspot button that matches the new index
+      const targetHotspot = allHotspots.find(h => parseInt(h.dataset.count) === newIndex);
+
+      if (targetHotspot) {
+        // Trigger your existing open function!
+        openSpot(targetHotspot);
+      }
+    }
+
   </script>
 </body>
 
