@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Y1Rs — Carbon Road</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;700;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;1,9..40,300&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --bg: #060606;
+      --white: #F4F2EE;
+      --off: #999990;
+      --dim: rgba(244, 242, 238, 0.08);
+      --dim2: rgba(244, 242, 238, 0.14);
+      --font: 'Unbounded', sans-serif;
+      --body: 'DM Sans', sans-serif;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* DOT GRID */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.032) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* VIGNETTE */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, rgba(6, 6, 6, 0.75) 100%);
+    }
+
+    /* CORNER MARKS */
+    .corners {
+      position: fixed;
+      inset: 0;
+      z-index: 25;
+      pointer-events: none;
+    }
+
+    .corner {
+      position: absolute;
+      width: 35px;
+      height: 35px;
+    }
+
+    .corner::before,
+    .corner::after {
+      content: '';
+      position: absolute;
+      background: rgba(244, 242, 238, 0.8);
+    }
+
+    .corner::before {
+      width: 1px;
+      height: 100%;
+    }
+
+    .corner::after {
+      width: 100%;
+      height: 1px;
+    }
+
+    .corner.tl {
+      top: 20px;
+      left: 20px;
+    }
+
+    .corner.tl::before {
+      top: 0;
+      left: 0;
+    }
+
+    .corner.tl::after {
+      top: 0;
+      left: 0;
+    }
+
+    .corner.tr {
+      top: 20px;
+      right: 20px;
+    }
+
+    .corner.tr::before {
+      top: 0;
+      right: 0;
+    }
+
+    .corner.tr::after {
+      top: 0;
+      right: 0;
+    }
+
+    .corner.bl {
+      bottom: 20px;
+      left: 20px;
+    }
+
+    .corner.bl::before {
+      bottom: 0;
+      left: 0;
+    }
+
+    .corner.bl::after {
+      bottom: 0;
+      left: 0;
+    }
+
+    .corner.br {
+      bottom: 20px;
+      right: 20px;
+    }
+
+    .corner.br::before {
+      bottom: 0;
+      right: 0;
+    }
+
+    .corner.br::after {
+      bottom: 0;
+      right: 0;
+    }
+
+    /* DEV HUD */
+    #dev-overlay {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(6, 6, 6, 0.9);
+      border: 1px solid rgba(244, 242, 238, 0.2);
+      border-radius: 4px;
+      padding: 16px 20px;
+      font-family: monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #7ee287;
+      z-index: 9999;
+      pointer-events: none;
+      display: none;
+      /* Re-hidden for production! */
+      white-space: pre-wrap;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* GHOST */
+    .ghost {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-48%, -50%) scaleX(2.0);
+      transform-style: preserve-3d;
+      font-family: var(--font);
+      font-size: clamp(90px, 19vw, 260px);
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+      color: rgba(255, 255, 255, 0.025);
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+      transition: opacity 1s var(--ease);
+    }
+
+    .ghost::before,
+    .ghost::after {
+      content: "Y1Rs";
+      position: absolute;
+      left: 0;
+      width: 100%;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255, 255, 255, 0.04);
+      z-index: -1;
+      font-style: italic;
+    }
+
+    .ghost::before {
+      top: 40%;
+      transform: translateY(-85%);
+    }
+
+    .ghost::after {
+      top: -40%;
+      transform: translateY(85%);
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 20px 52px 0;
+      pointer-events: none;
+    }
+
+    .nav-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0px;
+    }
+
+    .nav-brand {
+      font-family: var(--font);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: var(--white);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-dot {
+      width: 4px;
+      height: 4px;
+      background: rgba(244, 242, 238, 0.35);
+      border-radius: 50%;
+    }
+
+    .nav-model {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.28em;
+      color: var(--off);
+      text-transform: uppercase;
+      padding-left: 0;
+      margin-top: -15px;
+    }
+
+    .nav-right {
+      text-align: right;
+    }
+
+    .nav-year {
+      font-family: var(--font);
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: var(--off);
+      text-transform: uppercase;
+      margin-top: 20px;
+    }
+
+    .nav-logo {
+      height: 100px;
+      object-fit: contain;
+      margin-left: 0;
+    }
+
+    /* MODEL VIEWER*/
+    model-viewer {
+      position: fixed;
+      top: 2%;
+      left: 2%;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      --poster-color: transparent;
+      z-index: 4;
+    }
+
+    /* HOTSPOT */
+    .Hotspot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid rgba(244, 242, 238, 0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color .3s, background .3s, transform .25s;
+      position: relative;
+      outline: none;
+    }
+
+    .Hotspot:hover {
+      border-color: var(--white);
+      background: rgba(244, 242, 238, 0.08);
+      transform: scale(1.1);
+    }
+
+    .Hotspot.active {
+      border-color: var(--white);
+      background: var(--white);
+    }
+
+    .Hotspot.active .dot {
+      background: var(--bg);
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      background: rgba(244, 242, 238, 0.9);
+      border-radius: 50%;
+      transition: background .3s;
+      flex-shrink: 0;
+    }
+
+    .Hotspot::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid rgba(244, 242, 238, 0.12);
+      animation: pulse 3s ease-out infinite;
+    }
+
+    .Hotspot.active::before {
+      animation: none;
+      opacity: 0;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.7);
+        opacity: 0.6
+      }
+
+      75% {
+        transform: scale(1.6);
+        opacity: 0
+      }
+
+      100% {
+        opacity: 0
+      }
+    }
+
+    .chip {
+      position: absolute;
+      left: calc(100% + 14px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(6, 6, 6, 0.75);
+      border: 1px solid rgba(244, 242, 238, 0.15);
+      border-radius: 2px;
+      padding: 5px 12px;
+      white-space: nowrap;
+      font-family: var(--font);
+      font-size: 8.5px;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(244, 242, 238, 0.7);
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+      transition: opacity .25s, transform .25s;
+    }
+
+    .Hotspot[data-side="left"] .chip {
+      left: auto;
+      right: calc(100% + 14px);
+    }
+
+    .HotspotAnnotation {
+      display: none;
+    }
+
+    /* OVERLAY DIMMER */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      background: rgba(6, 6, 6, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s var(--ease);
+    }
+
+    #overlay.show {
+      opacity: 1;
+    }
+
+    /* PANEL */
+    #panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: min(380px, 88vw);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 52px;
+      background: rgba(6, 6, 6, 0.96);
+      border-left: 1px solid var(--dim);
+      transform: translateX(100%);
+      transition: transform 0.7s var(--ease);
+      overflow: hidden;
+    }
+
+    #panel.open {
+      transform: translateX(0);
+    }
+
+    .p-ghost-num {
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-60%);
+      font-family: var(--font);
+      font-size: 180px;
+      font-weight: 900;
+      letter-spacing: -0.06em;
+      line-height: 1;
+      color: rgba(244, 242, 238, 0.03);
+      pointer-events: none;
+      user-select: none;
+      transition: opacity 0.3s;
+    }
+
+    #panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(244, 242, 238, 0.18), transparent);
+    }
+
+    .p-close {
+      position: absolute;
+      top: 32px;
+      right: 32px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--dim);
+      background: transparent;
+      cursor: pointer;
+      color: var(--off);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, color .2s, border-color .2s;
+      font-family: var(--body);
+      z-index: 1;
+    }
+
+    .p-close:hover {
+      background: var(--white);
+      color: var(--bg);
+      border-color: var(--white);
+    }
+
+    .p-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .p-eyebrow-line {
+      width: 24px;
+      height: 1px;
+      background: rgba(244, 242, 238, 0.25);
+    }
+
+    .p-index {
+      font-family: var(--font);
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.4em;
+      color: var(--off);
+      text-transform: uppercase;
+    }
+
+    .p-title {
+      font-family: var(--font);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: var(--white);
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .p-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, rgba(244, 242, 238, 0.12), transparent);
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .p-desc {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.85;
+      font-style: italic;
+      color: rgba(244, 242, 238, 0.45);
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .p-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .p-tag {
+      font-family: var(--font);
+      font-size: 8px;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(244, 242, 238, 0.28);
+      border: 1px solid rgba(244, 242, 238, 0.08);
+      border-radius: 1px;
+      padding: 6px 12px;
+    }
+
+    /* BOTTOM BAR */
+    .bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      padding: 40px 52px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      background: linear-gradient(to top, rgba(6, 6, 6, 0.7) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .hint-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      /* Subtle space between vertical hint groups */
+      pointer-events: none;
+      /* Let clicks pass through to the model-viewer */
+    }
+
+    .hint-pair {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      /* Small gap between icon and text */
+    }
+
+    .hint-icon {
+      height: 24px;
+      /* Subtle size */
+      width: auto;
+      opacity: 0.18;
+      /* Retains the subtle text opacity for visual balance */
+      transition: opacity 0.3s var(--ease);
+    }
+
+    .hint-desc {
+      /* Re-apply previous text styles for consistency */
+      font-size: 9.5px;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(244, 242, 238, 0.18);
+      /* Subtle default color */
+      transition: opacity 0.3s var(--ease);
+    }
+
+    .hint-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      /* Tight spacing between the two left-click instructions */
+    }
+
+    .hint {
+      font-size: 9.5px;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(244, 242, 238, 0.18);
+    }
+
+    .counter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .counter-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .counter-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(244, 242, 238, 0.15);
+      transition: background 0.4s;
+    }
+
+    .counter-dot.done {
+      background: rgba(244, 242, 238, 0.7);
+    }
+
+    .counter-label {
+      font-family: var(--font);
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: rgba(244, 242, 238, 0.18);
+    }
+
+    /* LOADER */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      transition: opacity 1s var(--ease);
+    }
+
+    #loader.fade {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ld-brand {
+      font-family: var(--font);
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: rgba(244, 242, 238, 0.06);
+    }
+
+    .ld-label {
+      font-family: var(--font);
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.45em;
+      color: rgba(244, 242, 238, 0.2);
+      text-transform: uppercase;
+    }
+
+    .ld-track {
+      width: 200px;
+      height: 1px;
+      background: rgba(244, 242, 238, 0.07);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ld-fill {
+      height: 100%;
+      width: 0;
+      background: rgba(244, 242, 238, 0.6);
+      transition: width .1s linear;
+    }
+
+    .ld-pct {
+      font-family: var(--font);
+      font-size: 9px;
+      font-weight: 200;
+      letter-spacing: 0.3em;
+      color: rgba(244, 242, 238, 0.12);
+    }
+
+    .progress-bar,
+    .progress-bar.hide {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="vignette"></div>
+  <div class="corners">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+  </div>
+
+  <div id="loader">
+    <div class="ld-brand">Y1Rs</div>
+    <p class="ld-label">Loading model</p>
+    <div class="ld-track">
+      <div class="ld-fill" id="ld-fill"></div>
+    </div>
+    <p class="ld-pct" id="ld-pct">0%</p>
+  </div>
+
+  <div class="ghost" id="ghost">Y1Rs</div>
+
+  <nav>
+    <div class="nav-left">
+      <div class="nav-brand-wrap">
+        <img src="colnago_logo.png" alt="Colnago" class="nav-logo">
+      </div>
+      <div class="nav-model">Carbon Road Bike</div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-year">2024 Edition</div>
+    </div>
+  </nav>
+
+  <model-viewer id="viewer" src="y1rs.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate
+    rotation-per-second="30deg" tone-mapping="neutral" shadow-intensity="1"
+    environment-image="https://modelviewer.dev/shared-assets/environments/aircraft_workshop_01_1k.hdr"
+    camera-orbit="769.3deg 89.29deg 340.8m" field-of-view="30deg" interpolation-decay="75"
+    min-camera-orbit="auto auto 50m" min-field-of-view="10deg" max-field-of-view="30deg">
+
+    <button class="Hotspot" slot="hotspot-1" data-position="0.42096397359523585m 50.08336956044014m 10.352672474054993m"
+      data-normal="0.11995681213234506m 0.6464580005596426m -0.7534602953941731m" data-visibility-attribute="visible"
+      data-target="4.68m 49.48m -9.16m" data-orbit="857.88deg 81.85deg 143.88m" data-index="01" data-count="0"
+      data-title="Aero Bottles"
+      data-desc="Twin aero-profile bottles shaped to mirror the down tube's cross-section. Zero aerodynamic penalty; the bottles are part of the system, not an afterthought bolted on."
+      data-tags="Aero Profile,Integrated Design,Down Tube">
+      <div class="dot"></div>
+      <div class="HotspotAnnotation">Aero Bottles</div>
+      <span class="chip">Aero Bottles</span>
+    </button>
+
+    <button class="Hotspot" slot="hotspot-2"
+      data-position="-1.9608549946067693m 95.78133016042027m -10.296841026401372m"
+      data-normal="-0.7427436430920602m 0.6653841125747458m 0.07480550367086837m" data-visibility-attribute="visible"
+      data-target="-1.00m 95.78m -6.19m" data-orbit="672.57deg 62.72deg 135.61m" data-index="02" data-count="1"
+      data-title="Saddle"
+      data-desc="Ergonomic carbon-railed saddle designed for optimal power transfer and comfort during aggressive aerodynamic positioning."
+      data-tags="Carbon Rails,Ergonomic,Lightweight" data-side="left">
+      <div class="dot"></div>
+      <div class="HotspotAnnotation">Saddle</div>
+      <span class="chip">Saddle</span>
+    </button>
+
+    <button class="Hotspot" slot="hotspot-5" data-position="-4.887865587829865m 18.238582270506328m -36.91729283078359m"
+      data-normal="-0.9997464556947574m -0.0101650341188599m -0.020092197668071174m" data-visibility-attribute="visible"
+      data-target="-7.32m 16.97m -33.61m" data-orbit="962.59deg 107.72deg 124.81m" data-index="03" data-count="2"
+      data-title="Rear Derailleur"
+      data-desc="Lightning-fast electronic shifting mechanism tucked neatly into the slipstream. Designed for precise chain management and maximum aerodynamic efficiency."
+      data-tags="Electronic Shifting,Aero Integration,Precision" data-side="left">
+      <div class="dot"></div>
+      <div class="HotspotAnnotation">Rear derailleur</div>
+      <span class="chip">Rear Derailleur</span>
+    </button>
+
+    <button class="Hotspot" slot="hotspot-6" data-position="-3.810628867102823m 35.33021700048084m -44.5251168132181m"
+      data-normal="-0.008298295043133452m 0.42595003481406885m -0.9047086305221536m" data-visibility-attribute="visible"
+      data-target="-8.18m 34.61m -38.93m" data-orbit="940.18deg 102.75deg 136.92m" data-index="04" data-count="3"
+      data-title="Rear Cassette"
+      data-desc="Wide-range cassette machined from a single titanium alloy billet. Each cog is profiled for fast, positive chain engagement. No mis-shifts under load."
+      data-tags="Titanium Alloy,Wide Range,12-Speed" data-side="left">
+      <div class="dot"></div>
+      <div class="HotspotAnnotation">Rear cassette</div>
+      <span class="chip">Rear Cassette</span>
+    </button>
+
+    <button class="Hotspot" slot="hotspot-7" data-position="0.37329730047879783m 76.70455367484593m 42.948628020811995m"
+      data-normal="0.23818430745603136m 0.3540714015573517m 0.9043791673191636m" data-visibility-attribute="visible"
+      data-target="10.90m 69.89m 37.94m" data-orbit="737.76deg 87.87deg 167.81m" data-index="05" data-count="4"
+      data-title="Head Tube"
+      data-desc="Oversized tapered carbon head tube; 1⅛ to 1½ inch steerer. The taper boosts steering stiffness by 40% over straight designs while shedding weight from the front end."
+      data-tags="Tapered Steerer,Carbon Lay-up,Aero Profile">
+      <div class="dot"></div>
+      <div class="HotspotAnnotation">Head tube</div>
+      <span class="chip">Head Tube</span>
+    </button>
+
+    <div class="progress-bar hide" slot="progress-bar">
+      <div class="update-bar"></div>
+    </div>
+  </model-viewer>
+
+  <div id="overlay"></div>
+
+  <div id="panel">
+    <button class="p-close" id="p-close">✕</button>
+    <div class="p-ghost-num" id="p-ghost">01</div>
+    <div class="p-eyebrow">
+      <div class="p-eyebrow-line"></div>
+      <span class="p-index" id="p-index">Component 01</span>
+    </div>
+    <h2 class="p-title" id="p-title">—</h2>
+    <div class="p-divider"></div>
+    <p class="p-desc" id="p-desc">—</p>
+    <div class="p-tags" id="p-tags"></div>
+  </div>
+
+  <div class="bottom">
+    <div class="hint-wrap">
+
+      <div class="hint-pair">
+        <img src="leftmouseclick.png" alt="Left Click Icon" class="hint-icon">
+        <div class="hint-stack">
+          <p class="hint-desc">Click markers to explore / close</p>
+          <p class="hint-desc">Hold & drag to rotate bike</p>
+        </div>
+      </div>
+
+      <div class="hint-pair">
+        <img src="rightmouseclick.png" alt="Right Click Icon" class="hint-icon">
+        <p class="hint-desc">Hold & drag to move</p>
+      </div>
+
+      <div class="hint-pair">
+        <img src="scrollbutton.png" alt="Scroll Icon" class="hint-icon">
+        <p class="hint-desc">Scroll to zoom</p>
+      </div>
+
+    </div>
+    <div class="counter-wrap">
+      <div class="counter-dots" id="dots">
+        <div class="counter-dot"></div>
+        <div class="counter-dot"></div>
+        <div class="counter-dot"></div>
+        <div class="counter-dot"></div>
+        <div class="counter-dot"></div>
+      </div>
+      <span class="counter-label" id="c-label">0 / 5</span>
+    </div>
+  </div>
+
+  <div id="dev-overlay">
+    <div style="margin-bottom: 8px;"><strong>Orbit:</strong> <span id="dev-orbit">Loading...</span></div>
+    <div><strong>Target:</strong> <span id="dev-target">Loading...</span></div>
+  </div>
+
+  <script>
+    const viewer = document.getElementById('viewer');
+
+    // Prevent standard right-click menu so user can smoothly pan the canvas
+    viewer.addEventListener('contextmenu', e => e.preventDefault());
+
+    /* DEV OVERLAY SCRIPT */
+    const devOrbit = document.getElementById('dev-orbit');
+    const devTarget = document.getElementById('dev-target');
+
+    viewer.addEventListener('camera-change', () => {
+      const orbit = viewer.getCameraOrbit();
+      const target = viewer.getCameraTarget();
+
+      const thetaDeg = (orbit.theta * 180 / Math.PI).toFixed(2);
+      const phiDeg = (orbit.phi * 180 / Math.PI).toFixed(2);
+
+      const orbitStr = `${thetaDeg}deg ${phiDeg}deg ${(orbit.radius).toFixed(2)}m`;
+      const targetStr = `${(target.x).toFixed(2)}m ${(target.y).toFixed(2)}m ${(target.z).toFixed(2)}m`;
+
+      devOrbit.textContent = orbitStr;
+      devTarget.textContent = targetStr;
+    });
+
+    const panel = document.getElementById('panel');
+    const overlay = document.getElementById('overlay');
+    const ghost = document.getElementById('ghost');
+    const dots = document.querySelectorAll('.counter-dot');
+    const cLabel = document.getElementById('c-label');
+    const visited = new Set();
+    let activeBtn = null;
+
+    /* Camera constants */
+    const DEFAULT_ORBIT = '769.3deg 89.29deg 340.8m';
+    const DEFAULT_TARGET = '0m 57m 0m';
+    const DEFAULT_FOV = '30deg';
+    const ZOOM_FOV = '20deg';
+
+    let savedOrbit = DEFAULT_ORBIT;
+    let savedTarget = DEFAULT_TARGET;
+
+    /* Loader */
+    viewer.addEventListener('progress', e => {
+      const p = Math.round(e.detail.totalProgress * 100);
+      document.getElementById('ld-fill').style.width = p + '%';
+      document.getElementById('ld-pct').textContent = p + '%';
+    });
+    viewer.addEventListener('load', () => setTimeout(() => document.getElementById('loader').classList.add('fade'), 400));
+    setTimeout(() => document.getElementById('loader').classList.add('fade'), 10000);
+
+    /* Camera Function (Shortest Path Math) */
+    function moveCamera(targetOrbit, targetCenter, fov) {
+      const currentOrbit = viewer.getCameraOrbit();
+      const parts = targetOrbit.split(' ');
+
+      let targetTheta = parseFloat(parts[0]);
+      if (parts[0].includes('deg')) {
+        targetTheta = targetTheta * (Math.PI / 180);
+      }
+
+      const PI2 = Math.PI * 2;
+      const turns = Math.round((currentOrbit.theta - targetTheta) / PI2);
+      const shortestTheta = targetTheta + (turns * PI2);
+
+      viewer.cameraTarget = targetCenter;
+      viewer.cameraOrbit = `${shortestTheta}rad ${parts[1]} ${parts[2]}`;
+      viewer.fieldOfView = fov;
+    }
+
+    /*Hotspot Clicks */
+    let startX = 0;
+    let startY = 0;
+
+    viewer.addEventListener('pointerdown', (e) => {
+      // Prevent middle-click (scroll wheel click) from doing anything
+      if (e.button === 1) {
+        e.preventDefault();
+        return;
+      }
+
+      // Record the starting position when the mouse is pressed
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    viewer.addEventListener('click', e => {
+      // Calculate how far the mouse moved between press and release
+      const moveX = Math.abs(e.clientX - startX);
+      const moveY = Math.abs(e.clientY - startY);
+
+      // If the cursor moved more than 5 pixels, it was a drag! 
+      // We return early so the hotspot panel doesn't close.
+      if (moveX > 5 || moveY > 5) {
+        return;
+      }
+
+      // Otherwise, it was a clean click. Proceed as normal.
+      const btn = e.target.closest('.Hotspot');
+
+      if (btn) {
+        openSpot(btn);
+      } else if (!panel.contains(e.target) && panel.classList.contains('open')) {
+        closePanel();
+      }
+    });
+
+    document.getElementById('p-close').addEventListener('click', closePanel);
+
+    function openSpot(btn) {
+      viewer.autoRotate = false;
+
+      if (!panel.classList.contains('open')) {
+        const orbit = viewer.getCameraOrbit();
+        const target = viewer.getCameraTarget();
+        savedOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius}m`;
+        savedTarget = `${target.x}m ${target.y}m ${target.z}m`;
+      }
+
+      if (typeof viewer.resetTurntableRotation === 'function') {
+        viewer.resetTurntableRotation();
+      }
+
+      moveCamera(btn.dataset.orbit, btn.dataset.target, ZOOM_FOV);
+
+      const idx = btn.dataset.index;
+      document.getElementById('p-ghost').textContent = idx;
+      document.getElementById('p-index').textContent = 'Component ' + idx;
+      document.getElementById('p-title').textContent = btn.dataset.title;
+      document.getElementById('p-desc').textContent = btn.dataset.desc;
+      document.getElementById('p-tags').innerHTML =
+        btn.dataset.tags.split(',').map(t => `<span class="p-tag">${t.trim()}</span>`).join('');
+
+      if (activeBtn) activeBtn.classList.remove('active');
+      btn.classList.add('active');
+      activeBtn = btn;
+
+      panel.classList.add('open');
+      overlay.classList.add('show');
+      ghost.style.opacity = '0';
+
+      const n = parseInt(btn.dataset.count);
+      if (!visited.has(idx)) {
+        visited.add(idx);
+        dots[n].classList.add('done');
+        cLabel.textContent = visited.size + ' / 5';
+      }
+
+      setTimeout(() => {
+        if (activeBtn === btn) moveCamera(btn.dataset.orbit, btn.dataset.target, ZOOM_FOV);
+      }, 50);
+    }
+
+    function closePanel() {
+      panel.classList.remove('open');
+      overlay.classList.remove('show');
+      ghost.style.opacity = '1';
+
+      if (activeBtn) { activeBtn.classList.remove('active'); activeBtn = null; }
+
+      moveCamera(savedOrbit, savedTarget, DEFAULT_FOV);
+
+      setTimeout(() => {
+        if (!activeBtn) moveCamera(savedOrbit, savedTarget, DEFAULT_FOV);
+      }, 50);
+
+      setTimeout(() => { if (!activeBtn) viewer.autoRotate = true; }, 900);
+    }
+  </script>
+</body>
+
+</html>
