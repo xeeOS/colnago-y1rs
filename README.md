@@ -24,6 +24,7 @@
 ## Project Structure
 
 ```text
+colnago-y1rs/
 ├── Models/
 │   └── y1rs.glb              # 3d bike model
 ├── Pictures/
