@@ -1,4 +1,4 @@
-# Colnago Y1Rs Project
+# AeroMesh
 
 <p align="center">
   <img src="Pictures/y1rs.png" alt="Colnago Y1Rs Showcase" width="500" />
@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/Model--Viewer-333333?style=flat" alt="Model-Viewer" />
 </p>
 
-> An interactive 3d implementation showcasing the precision engineering and aerodynamics of the Colnago Y1Rs road bike.
+> An interactive 3d implementation showcasing the precision engineering and aerodynamics of the Colnago road bikes.
 
 ## Features
 
