@@ -27,8 +27,8 @@
 colnago-y1rs/
 ├── Models/
 │   └── y1rs.glb              # 3d bike model
-├── Pictures/
-│   ├── colnago_logo.png      # assets
+├── Pictures/                 # assets
+│   ├── colnago_logo.png      
 │   ├── leftmouseclick.png    
 │   ├── rightmouseclick.png
 |   ├── scrollbutton.png
